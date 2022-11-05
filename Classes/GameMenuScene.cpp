@@ -4,11 +4,11 @@
 //
 // Created by Baron.Yang on 9-17-2022.
 
-#include "HelloWorldScene.h"
 #include "GameMenuScene.h"
 #include "GameAboutScene.h"
 #include "cocostudio/SimpleAudioEngine.h"
 #include "GameMainScene.h"
+#include "PreLoadGame.h"
 //#include ""
 //#include ""
 using namespace CocosDenshion;
@@ -22,7 +22,7 @@ Scene* GameMenu::createScene()
 	return scene;
 }
 
-//游戏初始化
+//Game init
 
 bool GameMenu::init()
 {
@@ -32,30 +32,50 @@ bool GameMenu::init()
 	}
 	audio->stopBackgroundMusic();
 	Size size = Director::getInstance()->getVisibleSize();
-	//菜单背景
-	Sprite* bg = Sprite::create("MainMenu.png");
+	//background menu
+
+	Sprite* bg = Sprite::createWithSpriteFrameName("MainMenu.png");
 	bg->setScale(1.2);
 	bg->setPosition(Vec2(size.width / 2, size.height / 2));
 	this->addChild(bg, 0, 0);
-	//按钮
-	// 
-	//开始按钮
-	auto newGameItem = MenuItemImage::create("newGameA.png", "newGameB.png",CC_CALLBACK_1(GameMenu::menuNewGameCallback, this));
+	Sprite* run = Sprite::createWithSpriteFrameName("run.png");
+	run->setScale(1.2);
+	run->setPosition(Vec2(size.width / 2-240, size.height));
+	this->addChild(run, 0, 0);
+	Sprite* loli = Sprite::createWithSpriteFrameName("loli.png");
+	loli->setScale(1.2);
+	loli->setPosition(Vec2(size.width / 2 , size.height));
+	this->addChild(loli, 0, 0);
+	Sprite* run2 = Sprite::createWithSpriteFrameName("run.png");
+	run2->setScale(1.2);
+	run2->setPosition(Vec2(size.width / 2 + 240, size.height));
+	this->addChild(run2, 0, 0);
+	//Action create;
+	auto mov1 = MoveBy::create(1.0,Vec2(0,-200));
+	auto mov2 = MoveBy::create(1.0, Vec2(0, -200));
+	auto mov3 = MoveBy::create(1.0, Vec2(0, -120));
+	auto rotaTol = RotateTo::create(1,20);
+	//Anime create for background.
+	run->runAction(mov1);
+	run2->runAction(Sequence::create(mov2, rotaTol, NULL));
+	loli->runAction(mov3);
+	//Start button create.
+	auto newGameItem = MenuItemImage::create("button//newGameA.png", "button//newGameB.png",CC_CALLBACK_1(GameMenu::menuNewGameCallback, this));
 	newGameItem->setScale(1);
 	newGameItem->setPosition(Vec2(size.width / 2 + 40, size.height / 2));
 	newGameItem->setEnabled(false);
-	// 继续按钮
-	auto continueItem = MenuItemImage::create("continueA.png", "continueB.png",CC_CALLBACK_1(GameMenu::menuNewGameCallback, this));
+	//Continue button create.
+	auto continueItem = MenuItemImage::create("button//continueA.png", "button//continueB.png",CC_CALLBACK_1(GameMenu::menuNewGameCallback, this));
 	continueItem->setScale(1);
 	continueItem->setPosition(Vec2(size.width / 2 + 40, size.height / 2 - 60));
 	continueItem->setEnabled(false);
-	// 关于按钮
-	auto aboutItem = MenuItemImage::create("aboutA.png", "aboutB.png",CC_CALLBACK_1(GameMenu::menuAboutCallback, this));
+	// About button create. 
+	auto aboutItem = MenuItemImage::create("button//aboutA.png", "button//aboutB.png",CC_CALLBACK_1(GameMenu::menuAboutCallback, this));
 	aboutItem->setScale(1);
 	aboutItem->setPosition(Vec2(size.width / 2 + 40, size.height / 2 - 120));
 	aboutItem->setEnabled(false);
-	//声音按钮
-	soundItem = MenuItemImage::create("sound-on-A.png", "sound-on-B.png",CC_CALLBACK_1(GameMenu::menuSoundCallback, this));
+	// sound button create. 
+	soundItem = MenuItemImage::create("button//sound-on-A.png", "button//sound-on-B.png",CC_CALLBACK_1(GameMenu::menuSoundCallback, this));
 	soundItem->setScale(1);
 	soundItem->setPosition(Vec2(60, 60));
 	soundItem->setEnabled(false);
@@ -65,45 +85,38 @@ bool GameMenu::init()
 	this->addChild(mainmenu, 1, 3);
 
 	issound = true;
-	//初始化声音
 
-	audio->playBackgroundMusic("background.mp3", true);
+	audio->playBackgroundMusic("Sound//background.ogg", true);
 	return true;
 }
 
-
+//Jump to game main scene.
 void GameMenu::menuNewGameCallback(Ref* pSender)
 {
-	log("123456");
-	/*Director::getInstance()->setDepthTest();*/
-	Director::getInstance()->replaceScene(TransitionPageTurn::create(0.5,GameMain::createScene(), false));
-
+	Director::getInstance()->replaceScene(TransitionPageTurn::create(0.5, GameMain::createScene(), false));
 }
 
 void GameMenu::menuContinueCallback(Ref* pSender)
 {
 
 }
-
+//Jump to about 
 void GameMenu::menuAboutCallback(Ref* pSender)
 {
-	/*Director::getInstance()->setDepthTest();*/
-	//Director::getInstance()->replaceScene( HelloWorld::createScene());
 	Director::getInstance()->replaceScene(TransitionPageTurn::create(0.5, GameAbout::createScene(), false));
 }
-
+// Sound control 
 void GameMenu::menuSoundCallback(Ref* pSender)
 {
-	//设置声音
 	if (!issound) {
-		soundItem->setNormalImage(Sprite::create("sound-on-A.png"));
-		soundItem->setDisabledImage(Sprite::create("sound-on-B.png"));
-		audio->playBackgroundMusic("background.mp3", true);
+		soundItem->setNormalImage(Sprite::createWithSpriteFrameName("sound-on-A.png"));
+		soundItem->setDisabledImage(Sprite::createWithSpriteFrameName("sound-on-B.png"));
+		audio->playBackgroundMusic("background.ogg", true);
 		issound = true;
 	}
 	else {
-		soundItem->setNormalImage(Sprite::create("sound-off-A.png"));
-		soundItem->setDisabledImage(Sprite::create("sound-off-B.png"));
+		soundItem->setNormalImage(Sprite::createWithSpriteFrameName("sound-off-A.png"));
+		soundItem->setDisabledImage(Sprite::createWithSpriteFrameName("sound-off-B.png"));
 		audio->stopBackgroundMusic();
 		issound = false;
 	}

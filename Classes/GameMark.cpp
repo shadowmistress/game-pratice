@@ -23,11 +23,11 @@ void GameMark::onEnter()
     Node::onEnter();
     Size size = Director::getInstance()->getVisibleSize();
     this->setContentSize(size);
-    Sprite* title = Sprite::create("score.png");
+    Sprite* title = Sprite::createWithSpriteFrameName("score.png");
     title->setPosition(Vec2(size.width / 2 + 280, size.height - 15));
     addChild(title);
     for (int i = 0; i < 5; i++) {
-        Sprite* shu = Sprite::create("shu.png");
+        Sprite* shu = Sprite::create("mark//shu.png");
         ui = shu->getTexture();
         /*234 對應零的位置 每隔26數字減小*/
         shu->setTextureRect(Rect(234, 0, 26, 31));

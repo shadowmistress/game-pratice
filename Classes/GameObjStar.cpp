@@ -21,9 +21,9 @@ GameObjStar::~GameObjStar() {
 }
 void GameObjStar::onEnter() {
     Node::onEnter();
-    //ÐÇÐÇ³õÊ¼»¯
+    //star init
     this->setContentSize(Size(36.5, 35.5));
-    Sprite* star = Sprite::create("star.png");
+    Sprite* star = Sprite::createWithSpriteFrameName("star.png");
     star->setScale(0.5);
     _visable = true;
     addChild(star, 1);

@@ -24,11 +24,10 @@ void GameObjHero::onEnter()
 {
     Node::onEnter();
     auto listener1 = EventListenerTouchOneByOne::create();
-    /*auto* dispatcher = Director::getInstance()->getEventDispatcher();*/
     auto* keyListener = EventListenerKeyboard::create();
     keyListener->onKeyPressed = CC_CALLBACK_2(GameObjHero::onKeyPressed, this);
     keyListener->onKeyReleased = CC_CALLBACK_2(GameObjHero::onKeyReleased, this);
-    //dispatcher->addEventListenerWithSceneGraphPriority(keyListener, this);
+
     listener1->onTouchBegan = CC_CALLBACK_2(GameObjHero::TouchBegan,this);
     listener1->onTouchMoved = CC_CALLBACK_2(GameObjHero::TouchMoved, this);
     listener1->onTouchEnded = CC_CALLBACK_2(GameObjHero::TouchEnded, this);
@@ -36,19 +35,19 @@ void GameObjHero::onEnter()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(keyListener, this);
     this->setContentSize(Size(85, 90));
 
-    Sprite* obj = Sprite::create("s_hurt.png");
+    Sprite* obj = Sprite::createWithSpriteFrameName("s_hurt.png");
     hurt = obj->getTexture();
-    obj = Sprite::create("s_jump.png");
+    obj = Sprite::createWithSpriteFrameName("s_jump.png");
     jump = obj->getTexture();
-    mainsprite = Sprite::create("s_1.png");
+    mainsprite = Sprite::createWithSpriteFrameName("s_1.png");
     ////动画
     Animation* animation = Animation::create();
-    animation->addSpriteFrameWithFile("s_1.png");
-    animation->addSpriteFrameWithFile("s_2.png");
-    animation->addSpriteFrameWithFile("s_3.png");
-    animation->addSpriteFrameWithFile("s_4.png");
-    animation->addSpriteFrameWithFile("s_5.png");
-    animation->addSpriteFrameWithFile("s_6.png");
+    for (int i = 1; i < 7; i++)
+    {
+        std::string L_name = StringUtils::format("s_%d.png",i);
+        animation->addSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName(L_name));
+    }
+
     animation->setDelayPerUnit(0.1f);
     animation->setRestoreOriginalFrame(true);
     ////运行奔跑动画
@@ -65,13 +64,13 @@ void GameObjHero::setState(short var) {
         this->stopAllActions();
         mainsprite->stopAllActions();
         mainsprite->setTexture(jump);
-        this->runAction(Sequence::create(JumpBy::create(1.5, Vec2(0, 0), 150, 1), CallFunc::create(CC_CALLBACK_0(GameObjHero::jumpend,this)), NULL));
+        this->runAction(Sequence::create(JumpBy::create(1.3, Vec2(0, 0), 180, 1), CallFunc::create(CC_CALLBACK_0(GameObjHero::jumpend,this)), NULL));
         break;
     case 2://受伤
         this->stopAllActions();
         mainsprite->stopAllActions();
         mainsprite->setTexture(hurt);
-        /*this->runAction(Blink::create(3, 10));*/
+        this->runAction(Blink::create(3, 10));
         this->runAction(Sequence::create(MoveBy ::create(1.0f,Vec2(0,-500)), CallFunc::create(CC_CALLBACK_0(GameObjHero::hurtend, this)), NULL));
         ((GameMain*)this->getParent())->setover();
         break;
@@ -79,12 +78,13 @@ void GameObjHero::setState(short var) {
         this->stopAllActions();
         mainsprite->stopAllActions();
         Animation* animation = Animation::create();
-        animation->addSpriteFrameWithFile("s_1.png");
-        animation->addSpriteFrameWithFile("s_2.png");
-        animation->addSpriteFrameWithFile("s_3.png");
-        animation->addSpriteFrameWithFile("s_4.png");
-        animation->addSpriteFrameWithFile("s_5.png");
-        animation->addSpriteFrameWithFile("s_6.png");
+
+        for (int i = 1; i < 7; i++)
+        {
+            std::string L_name = StringUtils::format("s_%d.png", i);
+            animation->addSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName(L_name));
+        }
+
         animation->setDelayPerUnit(0.1f);
         animation->setRestoreOriginalFrame(true);
         mainsprite->runAction(RepeatForever::create(Animate::create(animation)));
@@ -99,14 +99,9 @@ void GameObjHero::hurtend() {
 }
 void GameObjHero::onExit()
 {
-    /*_eventDispatcher->removeAllEventListeners();*/
     Node::onExit();
 }
-//bool GameObjHero::containsTouchLocation(CCTouch* touch)
-//{
-//    //return CCRect::CCRectContainsPoint(rect(), convertTouchToNodeSpaceAR(touch));
-//    return rect().containsPoint(convertTouchToNodeSpaceAR(touch));
-//}
+
 bool GameObjHero::TouchBegan(Touch* touch, Event* event)
 {
     log("touch event start!!!!!!!!!!!!!");

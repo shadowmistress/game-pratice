@@ -8,22 +8,7 @@
 #include "GameConst.h"
 #include "GameObjStar.h"
 #include "String.h"
-//#include "json/rapidjson.h"
-//#include "json/document.h"
 #include "fstream"
-/*deal with log function which not print string type */
-static int log_string(const std::string tmp_string)
-{
-    char tmp[1024];
-    memset(tmp, 0, 1024);
-    for (int i = 0; i < tmp_string.size(); i++)
-    {
-        tmp[i] = tmp_string[i];
-    }
-    log("%s", tmp);
-    return 0;
-}
-
 /*constructor*/
 GameObjMap::GameObjMap() {
 
@@ -35,33 +20,25 @@ GameObjMap::~GameObjMap()
 
 }
 
-/*layer init create background scene*/
+
+/***********************************************************************
+Name : onEnter()
+Function : Get visiable size width and height,Load Map Background and road. 
+Args:
+return type : void.
+************************************************************************/
 void GameObjMap::onEnter()
 {
     Node::onEnter();
-    timer = 0;
-    count1 = 0;
-    count2 = 0;
+    Size size = Director::getInstance()->getVisibleSize();
+    _screen_width = size.width;
+    _screen_height = size.height;
+    map_count = 0;
+    filepath = filemanager.getFileMapPath();
+    LoadMapBackGroung();
+    LoadMapRoad();
+
     this->scheduleUpdate();
-    std::string paths = (FileUtils::getInstance()->getSearchPaths().at(0));
-    std::vector<std::string> v1 = r1.split(paths,"/");
-    new_paths = "";
-    for (int i = 0;i<v1.size()-2;i++)
-        new_paths = new_paths + v1.at(i).append("//");
-    LoadMap();
-    bgCreate();
-    roadCreateBg1(0, 0);
-    roadCreateBg2(1);
-    for (int i = 0; i < 5; i++) {
-        GameObjStar* obj = new GameObjStar();
-        obj->setPosition(Vec2(172 + 192 * i, 200));
-        stars1.pushBack(obj);
-        bg1->addChild(obj, 3);
-        obj = new GameObjStar();
-        obj->setPosition(Vec2(172 + 192 * i, 200));
-        stars2.pushBack(obj);
-        bg2->addChild(obj, 3);
-    }
 }
 
 /*node destory*/
@@ -70,376 +47,231 @@ void GameObjMap::onExit() {
 }
 
 
-void GameObjMap::bgCreate() 
-{
-    Size size = Director::getInstance()->getVisibleSize();
-    this->setContentSize(Size(1024, 768));
-    bg1 = Sprite::create("back_1.png");
-    bg1->setScale(1);
-    bg1->setAnchorPoint(Vec2(0, 1));
-    bg1->getTexture()->setAliasTexParameters();
-    bg1->setPosition(Vec2(0, size.height));
-    this->addChild(bg1, 0, 0);
-    Sprite* bgdi1 = Sprite::create("back_5.png");
-    bgdi1->setAnchorPoint(Vec2(0, 0));
-    bgdi1->setPosition(Vec2(0, size.height / 2 - 650));
-    bg1->addChild(bgdi1, 1);
-    bg2 = Sprite::create("back_1.png");
-    bg2->setScale(1);
-    bg2->setAnchorPoint(Vec2(0, 1));
-    bg2->getTexture()->setAliasTexParameters();
-    bg2->setPosition(Vec2(size.width, size.height));
-    this->addChild(bg2, 0, 1);
-    Sprite* bgdi2 = Sprite::create("back_5.png");
-    bgdi2->setAnchorPoint(Vec2(0, 0));
-    bgdi2->setPosition(Vec2(0, size.height / 2 - 650));
-    bg2->addChild(bgdi2, 1);
-    bgMap.pushBack(bg1);
-    bgMap.pushBack(bg2);
-}
-
-void GameObjMap::roadCreateBg1(int i,int k)
-{
-    int m = i;
-    for (int i = 0; i < 8; i++)
-    {
-        if (bg1shu[i] != -1){
-            /*log("test break id%d",bg1shu[i]);*/
-            switch (bg1shu[i])
-            {
-            case 0:
-                roadmode1(i + m,0);
-                break;
-            case 1:
-                roadmode2(i + m,0);
-                break;
-            case 2:
-                roadmode3(i + m,0);
-                break;
-            case 3:
-                roadmode4(i + m,0);
-                break;
-            case 4:
-                roadmode5(i + m,0);
-                break;
-            case 5:
-                roadmode6(i + m,0);
-                break;
-            case 6:
-                roadmode7(i + m,0);
-                break;
-            case 7:
-                roadmode8(i + m,0);
-                break;
-                default:
-                    break;
-                }
-            }
-    }
-}
-void GameObjMap::roadCreateBg2(int k)
-{
-    for (int i = 0; i < 8; i++)
-    {
-        if (bg2shu[i] != -1) {
-            /*log("test break id%d", bg2shu[i]);*/
-            switch (bg2shu[i])
-            {
-            case 0:
-                roadmode1(i + 8,1);
-                break;
-            case 1:
-                roadmode2(i + 8,1);
-                break;
-            case 2:
-                roadmode3(i + 8,1);
-                break;
-            case 3:
-                roadmode4(i + 8,1);
-                break;
-            case 4:
-                roadmode5(i + 8,1);
-                break;
-            case 5:
-                roadmode6(i + 8,1);
-                break;
-            case 6:
-                roadmode7(i + 8,1);
-                break;
-            case 7:
-                roadmode8(i + 8,1);
-                break;
-            default:
-                break;
-            }
-        }
-    }
-}
-
-void GameObjMap::roadmode1(int i,int k) 
-{
-    Sprite* plant = Sprite::create("back_2.png");
-    plant->setAnchorPoint(Vec2(0.5, 0));
-   //117
-    plant->setPosition(Vec2(128 * i + 64, 200));
-    this -> addChild(plant, 1);
-    Sprite* road = Sprite::create("road_2.png");
-    road->setAnchorPoint(Vec2(0, 0));
-    road->setPosition(Vec2(128 * i, 120));
-    Sprite* roaddi = Sprite::create("road_3.png");
-    roaddi->setAnchorPoint(Vec2(0, 1));
-    roaddi->setPosition(Vec2(0 , 0));
-    road->addChild(roaddi);
-    this->addChild(road);
-    if (k == 0)
-    {
-        roadMap1.pushBack(plant);
-        roadMap1.pushBack(road);
-    }
-    else
-    {
-        roadMap2.pushBack(plant);
-        roadMap2.pushBack(road);
-
-    }
-}
-void GameObjMap::roadmode2(int i, int k)
-{
-    Sprite* road = Sprite::create("road_1.png");
-    road->setAnchorPoint(Vec2(0, 0));
-    road->setPosition(Vec2(26 + 128 * i, 120));
-    Sprite* roaddi = Sprite::create("road_4.png");
-    roaddi->setAnchorPoint(Vec2(0, 1));
-    roaddi->setPosition(Vec2(0, 0));
-    road->addChild(roaddi);
-    this->addChild(road);
-    if (k == 0)
-    {
-        roadMap1.pushBack(road);
-    }
-    else
-    {
-        roadMap2.pushBack(road);
-
-    }
-}
-void GameObjMap::roadmode3(int i, int k)
-{
-    Sprite* plant = Sprite::create("enemy.png");
-    plant->setAnchorPoint(Vec2(0.5, 0));
-    plant->setPosition(Vec2(128 * i + 64, 210));
-    this->addChild(plant, 2);
-    Sprite* road = Sprite::create("road_1.png");
-    road->setFlippedX(true);
-    road->setAnchorPoint(Vec2(0, 0));
-    road->setPosition(Vec2(128 * i, 120));
-    Sprite* roaddi = Sprite::create("road_4.png");
-    roaddi->setFlippedX(true);
-    roaddi->setAnchorPoint(Vec2(0, 1));
-    roaddi->setPosition(Vec2(0, 0));
-    road->addChild(roaddi);
-    this->addChild(road, 1);
-    if (k == 0)
-    {
-        roadMap1.pushBack(plant);
-        roadMap1.pushBack(road);
-    }
-    else
-    {
-        roadMap2.pushBack(plant);
-        roadMap2.pushBack(road);
-
-    }
-}
-void GameObjMap::roadmode4(int i, int k)
-{
-    Sprite* road = Sprite::create("road_5.png");
-    road->setAnchorPoint(Vec2(0, 0));
-    road->setPosition(Vec2(128 * i, 120));
-    this->addChild(road);
-    if (k == 0)
-    {
-        roadMap1.pushBack(road);
-    }
-    else
-    {
-        roadMap2.pushBack(road);
-    }
-}
-
-void GameObjMap::roadmode5(int i, int k)
-{
-    Sprite*  road1 = Sprite::create("road_2.png");
-    road1->setAnchorPoint(Vec2(0, 0));
-    road1->setPosition(Vec2(128 * i, 120));
-    Sprite* roaddi = Sprite::create("road_3.png");
-    roaddi->setAnchorPoint(Vec2(0, 1));
-    roaddi->setPosition(Vec2(0,0));
-    road1->addChild(roaddi);
-    this->addChild(road1, 1);
-    if (k == 0)
-    {
-        roadMap1.pushBack(road1);
-    }
-    else
-    {
-        roadMap2.pushBack(road1);
-
-    }
-}
-void GameObjMap::roadmode6(int i, int k)
-{
-    Sprite* plant = Sprite::create("back_3.png");
-    plant->setAnchorPoint(Vec2(0.5, 0));
-    plant->setPosition(Vec2(128 * i + 128, 230));
-    this->addChild(plant, 1);
-    Sprite* road1 = Sprite::create("road_1.png");
-    road1->setAnchorPoint(Vec2(0, 0));
-    road1->setPosition(Vec2(26 + 128 * i, 120));
-    Sprite* roaddi = Sprite::create("road_4.png");
-    roaddi->setAnchorPoint(Vec2(0, 1));
-    roaddi->setPosition(Vec2(0, 0));
-    road1->addChild(roaddi);
-    this->addChild(road1, 1);
-    if (k == 0)
-    {
-        roadMap1.pushBack(road1);
-        roadMap1.pushBack(plant);
-    }
-    else
-    {
-        roadMap2.pushBack(road1);
-        roadMap2.pushBack(plant);
-
-    }
-}
-void GameObjMap::roadmode7(int i, int k)
-{
-    Sprite* road1 = Sprite::create("road_1.png");
-    road1->setFlippedX(true);
-    road1->setAnchorPoint(Vec2(0, 0));
-    road1->setPosition(Vec2(128 * i, 120));
-    Sprite* roaddi = Sprite::create("road_4.png");
-    roaddi->setFlippedX(true);
-    roaddi->setAnchorPoint(Vec2(0, 1));
-    roaddi->setPosition(Vec2(0, 0));
-    road1->addChild(roaddi);
-    this->addChild(road1, 1);
-    if (k == 0)
-    {
-        roadMap1.pushBack(road1);
-    }
-    else
-    {
-        roadMap2.pushBack(road1);
-    }
-}
-void GameObjMap::roadmode8(int i, int k)
-{
-    Sprite* road1 = Sprite::create("road_5.png");
-    road1->setAnchorPoint(Vec2(0, 0));
-    road1->setPosition(Vec2(128 * i, 120));
-    road1->setFlippedX(true);
-    this->addChild(road1);
-    if (k == 0)
-    {
-        roadMap1.pushBack(road1);
-    }
-    else
-    {
-        roadMap2.pushBack(road1);
-    }
-}
-
-
-
-
+/***********************************************************************
+Name : update()
+Function : Execute this function model per fps update.
+Args:
+return type : void.
+************************************************************************/
 void GameObjMap::update(float dt)
 {
-    if(timer++ % 1 == 0)
+    Sprite* bg1 = (Sprite*)this->getChildByTag(0);
+    Sprite* bgi1 = (Sprite*)this->getChildByTag(1);
+    Sprite* bg2 = (Sprite*)this->getChildByTag(2);
+    Sprite* bgi2 = (Sprite*)this->getChildByTag(3);
+    bg1->setPosition(bg1->getPositionX() - 4, bg1->getPositionY());
+    bgi1->setPosition(bgi1->getPositionX()- 4,bgi1->getPositionY());
+    bg2->setPosition(bg2->getPositionX() - 4, bg2->getPositionY());
+    bgi2->setPosition(bgi2->getPositionX() - 4, bgi2->getPositionY());
+    if (bg1->getPositionX() <= -_screen_width)
+        bg1->setPosition(_screen_width   , _screen_height / 2);
+    if (bg2->getPositionX() <= -_screen_width)
+        bg2->setPosition(_screen_width   , _screen_height / 2);
+    if (bgi1->getPositionX() <= -_screen_width) 
     {
-        timer = 1;
-        if (bgMap.at(0)->getPositionX() <= -1024)
+        for (int i = 0; i < 5; i++)
         {
-            Size size = Director::getInstance()->getVisibleSize();
-            bgMap.at(0)->setPosition(size.width, size.height);
-            roadMap1.clear();
-            if (count1 < tbg1.size() / 8)
-            {
-                for (int i = 0; i < 8; i++) {
-                    bg1shu[i] = tbg1.at(i + 8 * count1);
-                    log("shu:%d",bg1shu[i]);
-                }
-   
-                count1++;
-            }
-            roadCreateBg1(8,0);
-
-            for (int i = 0; i < 5; i++) 
-            {
-                stars1.at(i)->set_visable(true);
-            }
+            stars1.at(i)->set_visable(true);
         }
-        if (bgMap.at(1)->getPositionX() <= -1024)
+        ReloadMap(bgi1);
+        bgi1->setPosition(_screen_width , 0);
+        map_count++;
+    }
+    if (bgi2->getPositionX() <= -_screen_width)
+    {
+        for (int i = 0; i < 5; i++)
         {
-            Size size = Director::getInstance()->getVisibleSize();
-            bgMap.at(1)->setPosition(size.width, size.height);
-            roadMap2.clear();
-            if (count2 < tbg2.size() / 8)
-            {
-                for (int i = 0; i < 8; i++) {
-                    bg2shu[i] = tbg2.at(i + 8 * count2);
-                    log("shu2:%d", bg2shu[i]);
-                }
-              
-                count2++;
-            }
-            roadCreateBg2(1);
-            for (int i = 0; i < 5; i++)
-            {
-                stars2.at(i)->set_visable(true);
-            }
+            stars2.at(i)->set_visable(true);
         }
-        bgMap.at(0)->setPosition(bgMap.at(0)->getPositionX() - 4,bgMap.at(0)->getPositionY());
-        bgMap.at(1)->setPosition(bgMap.at(1)->getPositionX() - 4, bgMap.at(1)->getPositionY());
-        for (int i = 0; i < roadMap1.size(); i++)
-        {
-            roadMap1.at(i)->setPosition(roadMap1.at(i)->getPositionX() - 4, roadMap1.at(i)->getPositionY());
-        }
-        for (int i = 0; i < roadMap2.size(); i++)
-        {
-            roadMap2.at(i)->setPosition(roadMap2.at(i)->getPositionX() - 4, roadMap2.at(i)->getPositionY());
-        }
+        ReloadMap(bgi2);
+        bgi2->setPosition(_screen_width , 0);
+        map_count++;
     }
 }
 
-int GameObjMap::LoadMap()
+
+/***********************************************************************
+Name : LoadMapBackGroung()
+Function : Create backgroung sprite and star sprite. 
+Args:
+return type : int, value : 0(success) -1(fail)
+************************************************************************/
+int GameObjMap::LoadMapBackGroung()
 {
-    std::ifstream infile;
-    std::string mapPath = new_paths.append("Map//map.txt");
-    infile.open(mapPath, std::ios::in);
-    if (infile.is_open() == false)
-    {	// 文件打开失败
-        log("open file fail");
+    //Create backgroung.
+    std::string bg1_name = regx.getJsonData(filepath, "background", 0, "Sprite1");
+    std::string bgi1_name = regx.getJsonData(filepath, "background", 0, "Sprite2");
+    this->setContentSize(Size(_screen_width,_screen_height));
+    Sprite* bg1 = Sprite::createWithSpriteFrameName(bg1_name);
+    Sprite* bgi1 = Sprite::createWithSpriteFrameName(bgi1_name);
+    Sprite* bg2 = Sprite::createWithSpriteFrameName(bg1_name);
+    Sprite* bgi2 = Sprite::createWithSpriteFrameName(bgi1_name);
+    if (bg1 == nullptr || bgi1 == nullptr || bg2 == nullptr || bgi2 == nullptr)
+    {
+        log("error,sprite create error.");
         return -1;
     }
-    std::string s;
-    while (getline(infile, s))
+    bg1->setAnchorPoint(Vec2(0,0));
+    bg1->setPosition(Vec2(0, _screen_height / 2));
+    this->addChild(bg1,0, 0);
+    bgi1->setAnchorPoint(Vec2(0, 0));
+    bgi1->setPosition(Vec2(0, 0));
+    this->addChild(bgi1, 1, 1);
+    bg2->setAnchorPoint(Vec2(0, 0));
+    bg2->setPosition(Vec2(_screen_width, _screen_height / 2));
+    this->addChild(bg2,0, 2);
+    bgi2->setAnchorPoint(Vec2(0, 0));
+    bgi2->setPosition(Vec2(_screen_width, 0));
+    this->addChild(bgi2, 0,3);
+    //Create star.
+    for (int i = 0; i < 5; i++)
     {
-        std::vector<std::string> map = r1.split(s, ";");
-        log_string(map[0]);
-        log_string(map[1]);
-        std::vector<std::string> map1 = r1.split(map[0], ",");
-        for (int i = 0; i < map1.size(); i++)
-            tbg1.push_back((short)atoi(map1[i].c_str()));
-        std::vector<std::string> map2 = r1.split(map[1], ",");
-        for (int i = 0; i < map2.size(); i++)
-            tbg2.push_back((short)atoi(map2[i].c_str()));
+        GameObjStar* obj = new GameObjStar();
+        if (obj == nullptr)
+        {
+            log("error,sprite create error.");
+            return -1;
+        }
+        obj->setPosition(Vec2(172 + 192 * i, 100));
+        stars1.pushBack(obj);
+        bg1->addChild(obj, 2);
+        obj = new GameObjStar();
+        obj->setPosition(Vec2(172 + 192 * i, 100));
+        stars2.pushBack(obj);
+        bg2->addChild(obj, 2);
     }
-    infile.close();
     return 0;
 }
-void GameObjMap::ChangeMap(int k,int count)
-{
 
+
+/***********************************************************************
+Name : LoadMapRoad()
+Function : Load road sprite and plant sprite from map list and create it.
+Args:
+return type : int, value : 0(success) -1(fail)
+************************************************************************/
+int GameObjMap::LoadMapRoad()
+{
+    int result = 0;
+    Sprite* bgi1 = (Sprite*)this->getChildByTag(1);
+    Sprite* bgi2 = (Sprite*)this->getChildByTag(3);
+    for (int i = 0; i < road_list_init_i.size(); i++)
+    {
+        int R_i = road_list_init_i[i];
+        int P_i = plant_list_init_i[i];
+        if (R_i != -1)
+        {
+            if (i < 8)
+            {
+                result =CreateRoad(bgi1, R_i,i);
+                if(P_i != -1)
+                    CreatePlant(bgi1, P_i, i);
+            }
+            else
+            {
+                result =CreateRoad(bgi2, R_i, (i - 8));
+                if(P_i != -1)
+                    result = CreatePlant(bgi2, P_i, i - 8);
+            }
+        }
+    }
+    return result;
+}
+
+
+/***********************************************************************
+Name : ReloadMap()
+Function : Reload road sprite and plant sprite from json map list.
+Args: 
+    Sprite* bg : background sprite. 
+return type : int, value : 0(success) -1(fail)
+************************************************************************/
+int GameObjMap::ReloadMap(Sprite* bg)
+{
+    int result = 0;
+    if (road_list_i.size() / 8 <= map_count)
+    {
+        log("index over!!!!!!!!!!!!!!!!!!!");
+        return -1;
+    }
+    
+    bg->removeAllChildren();
+    for (int i = 0; i < 8; i++)
+    {
+        if (road_list_i[i + 8 * map_count] != -1)
+        {
+            result = CreateRoad(bg, road_list_i[i + 8 * map_count], i);
+            if((plant_list_i[i + 8 * map_count] != -1) && (road_list_i[i + 8 * map_count] != 3) && (road_list_i[i + 8 * map_count] != 4))
+                result = CreatePlant(bg, plant_list_i[i + 8 * map_count], i);
+        }
+    }
+    return result;
+}
+
+
+/***********************************************************************
+Name : CreateRoad()
+Function : Create road sprite from json map list.
+Args:
+    Sprite* bg : background sprite.
+    int mod : Select create road model for map.json 
+    int pos : Create road pos on screen.
+return type : int, value : 0(success) -1(fail)
+************************************************************************/
+int GameObjMap::CreateRoad(Sprite* bg, int mod, int pos)
+{
+    //road
+    Sprite* road = Sprite::createWithSpriteFrameName(regx.getJsonData(filepath, "road", mod, "Sprite1"));
+    std::string Sprite2 = regx.getJsonData(filepath, "road", mod, "Sprite2");
+    if (road == nullptr)
+    {
+        log("CreateRoad error");
+        return -1;
+    }
+    road->setContentSize(Size(128, 128));
+    road->setAnchorPoint(Vec2(0, 0));
+    road->setPosition(128 * pos, 130);
+    road->setFlippedX(atoi(regx.getJsonData(filepath, "road", mod, "SetFix").c_str()));
+    bg->addChild(road, 1);
+
+    if (Sprite2 != std::string("error"))
+    {
+        Sprite* roadi = Sprite::createWithSpriteFrameName(regx.getJsonData(filepath, "road", mod, "Sprite2"));
+        if (roadi == nullptr)
+        {
+            log("CreateRoad error");
+            return -1;
+        }
+        roadi->setContentSize(Size(128, 128));
+        roadi->setAnchorPoint(Vec2(0, 1));
+        roadi->setFlippedX(atoi(regx.getJsonData(filepath, "road", mod, "SetFix").c_str()));
+        roadi->setPosition(0, 0);
+        road->addChild(roadi,1);
+    }
+    return 0;
+}
+
+
+/***********************************************************************
+Name : CreatePlant()
+Function : Create plant sprite from json map list.
+Args:
+    Sprite* bg : background sprite.
+    int mod : Select create plant model for map.json
+    int pos : Create plant pos on screen.
+return type : int, value : 0(success) -1(fail)
+************************************************************************/
+int GameObjMap::CreatePlant(Sprite* bg, int mod, int pos)
+{
+    Sprite* plant = Sprite::createWithSpriteFrameName(regx.getJsonData(filepath, "plant", mod, "Sprite1"));
+    if (plant == nullptr)
+    {
+        log("CreatePlant error");
+        return -1;
+    }
+    plant->setAnchorPoint(Vec2(0, 0));
+    plant->setPosition(128 * pos, 240);
+    plant->setFlippedX(atoi(regx.getJsonData(filepath, "road", mod, "SetFix").c_str()));
+    bg->addChild(plant, 1);
+    return 0;
 }

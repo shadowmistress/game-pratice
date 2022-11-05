@@ -26,11 +26,11 @@ bool GameAbout::init()
 
     Size size = Director::getInstance()->getVisibleSize();
 
-    Sprite* bg = Sprite::create("back_1.png");
+    Sprite* bg = Sprite::createWithSpriteFrameName("back_1.png");
     bg->setScale(1);
     bg->setPosition(Vec2(size.width / 2, size.height / 2));
     this->addChild(bg, 0, 0);
-    Sprite* kuang = Sprite::create("tb.png");
+    Sprite* kuang = Sprite::createWithSpriteFrameName("tb.png");
     kuang->setScale(0.5f);
     kuang->setRotation(90);
     kuang->setPosition(Vec2(size.width / 2, size.height / 2));
@@ -47,12 +47,12 @@ bool GameAbout::init()
     myjineng->setAlignment(TextHAlignment::LEFT);
     this->addChild(myjineng);
     //关于标签
-    Sprite* abouttitle = Sprite::create("about.png");
+    Sprite* abouttitle = Sprite::createWithSpriteFrameName("about.png");
     abouttitle->setScale(0.5);
     abouttitle->setPosition(Vec2(size.width / 2, size.height - 20));
     this->addChild(abouttitle, 3, 3);
     //返回
-    auto back = MenuItemImage::create("backA.png", "backB.png", CC_CALLBACK_1(GameAbout::menuBackCallback, this));
+    auto back = MenuItemImage::create("button//backA.png", "button//backB.png", CC_CALLBACK_1(GameAbout::menuBackCallback, this));
     back->setScale(1);
     back->setPosition(Vec2(size.width - 20, size.height - 20));
     //back->setEnabled(false);
